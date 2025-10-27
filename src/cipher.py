@@ -1,6 +1,9 @@
 from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+class InvalidKeyError(Exception):
+    pass
+
 class AesCipher:
     pad: PKCS7
     cipher: Cipher
@@ -32,7 +35,11 @@ class AesCipher:
 
         unpadder = self.pad.unpadder()
         unpadded_data = unpadder.update(decrypted_data)
-        unpadded_data += unpadder.finalize()
+        try:
+            # this fails when the padding doesn't make sense, which is the case when the key is wrong
+            unpadded_data += unpadder.finalize()
+        except ValueError:
+            raise InvalidKeyError()
         unpadder = None
 
         return unpadded_data

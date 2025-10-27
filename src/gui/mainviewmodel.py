@@ -1,7 +1,7 @@
 from tkinter import StringVar, BooleanVar
 
 from .validationvars import StringValidationVar, DataValidationError
-from src.cipher import AesCipher
+from src.cipher import AesCipher, InvalidKeyError
 from src.mnemonics import MnemonicConverter, MnemonicConversionError
 from src.key_derivation import Argon2Kdf
 
@@ -77,7 +77,14 @@ class MainViewModel:
         if len(encrypted_data) == 0: return
         self.update_key()
 
-        decrypted_data = self._cipher.decrypt(encrypted_data)
+        try:
+            decrypted_data = self._cipher.decrypt(encrypted_data)
+            self.encrypted_mnemonic.error_msg.set("")
+            self.encrypted_mnemonic.valid = True
+        except InvalidKeyError:
+            self.encrypted_mnemonic.error_msg.set("Invalid decryption key.")
+            self.encrypted_mnemonic.valid = False
+            return
 
         self._ignore_crypt_update = True
         self.plain_data_hex.set(decrypted_data.hex())
