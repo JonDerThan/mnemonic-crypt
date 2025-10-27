@@ -1,7 +1,10 @@
 from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-class InvalidKeyError(Exception):
+class DecryptionError(Exception):
+    pass
+
+class InvalidKeyError(DecryptionError):
     pass
 
 class AesCipher:
@@ -30,7 +33,11 @@ class AesCipher:
     def decrypt(self, data: bytes) -> bytes:
         decr = self.cipher.decryptor()
         decrypted_data = decr.update(data)
-        decrypted_data += decr.finalize()
+        try:
+            decrypted_data += decr.finalize()
+        except ValueError:
+            # probably invalid block length
+            raise DecryptionError()
         decr = None
 
         unpadder = self.pad.unpadder()

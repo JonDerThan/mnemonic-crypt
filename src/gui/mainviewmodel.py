@@ -1,7 +1,7 @@
 from tkinter import StringVar, BooleanVar
 
 from .validationvars import StringValidationVar, DataValidationError
-from src.cipher import AesCipher, InvalidKeyError
+from src.cipher import AesCipher, InvalidKeyError, DecryptionError
 from src.mnemonics import MnemonicConverter, MnemonicConversionError
 from src.key_derivation import Argon2Kdf
 
@@ -83,6 +83,10 @@ class MainViewModel:
             self.encrypted_mnemonic.valid = True
         except InvalidKeyError:
             self.encrypted_mnemonic.error_msg.set("Invalid decryption key.")
+            self.encrypted_mnemonic.valid = False
+            return
+        except DecryptionError:
+            self.encrypted_mnemonic.error_msg.set("Invalid ciphertext.")
             self.encrypted_mnemonic.valid = False
             return
 
