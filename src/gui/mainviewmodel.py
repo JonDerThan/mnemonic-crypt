@@ -18,14 +18,14 @@ class MainViewModel:
     encrypted_mnemonic: StringValidationVar
     is_key_valid: BooleanVar
 
-    _ignore_events: bool
+    _ignore_events: set
     _ignore_crypt_update: bool
 
     _cipher: AesCipher | None
 
     def __init__(self, mnemonic_converter: MnemonicConverter):
         self.mnemonic_conv = mnemonic_converter
-        self._ignore_events = False
+        self._ignore_events = set()
         self._ignore_crypt_update = False
 
         kdf_params = Argon2Kdf.parameters_to_str(Argon2Kdf.default_parameters())
@@ -117,9 +117,10 @@ class MainViewModel:
         self.salt_hex.set(new_salt.hex())
 
     def _on_hex_changed(self, var_name: str, idx: str, mode: str) -> None:
-        if self._ignore_events: return
-        hex_var = getattr(self, var_name)
-        mnemonic_var = getattr(self, var_name.replace("_hex", "_mnemonic"))
+        var_name_prefix = var_name.replace("_hex", "").replace("_mnemonic", "")
+        if var_name_prefix in self._ignore_events: return
+        hex_var = getattr(self, var_name_prefix + "_hex")
+        mnemonic_var = getattr(self, var_name_prefix + "_mnemonic")
         new_val = hex_var.get()
 
         try:
@@ -130,14 +131,15 @@ class MainViewModel:
         res = self.mnemonic_conv.convert_bytes(parsed_bytes)
         mnemonic = res.str(omit_zero_padding=True)
 
-        self._ignore_events = True
+        self._ignore_events.add(var_name_prefix)
         mnemonic_var.set(mnemonic)
-        self._ignore_events = False
+        self._ignore_events.remove(var_name_prefix)
 
     def _on_mnemonic_changed(self, var_name: str, idx: str, mode: str) -> None:
-        if self._ignore_events: return
-        hex_var = getattr(self, var_name.replace("_mnemonic", "_hex"))
-        mnemonic_var = getattr(self, var_name)
+        var_name_prefix = var_name.replace("_hex", "").replace("_mnemonic", "")
+        if var_name_prefix in self._ignore_events: return
+        hex_var = getattr(self, var_name_prefix + "_hex")
+        mnemonic_var = getattr(self, var_name_prefix + "_mnemonic")
         new_val = mnemonic_var.get()
 
         try:
@@ -147,9 +149,9 @@ class MainViewModel:
 
         data_hex = res.data.tobytes().hex()
 
-        self._ignore_events = True
+        self._ignore_events.add(var_name_prefix)
         hex_var.set(data_hex)
-        self._ignore_events = False
+        self._ignore_events.remove(var_name_prefix)
 
     def _on_encrypted_hex_changed(self, var_name: str, idx: str, mode: str) -> None:
         if self._ignore_crypt_update: return
