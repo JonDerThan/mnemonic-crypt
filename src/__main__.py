@@ -1,10 +1,21 @@
 from argparse import ArgumentParser, Namespace
+from getpass import getpass
 import sys
 from typing import Any
 
 from .cipher import AesCipher
 from .key_derivation import Argon2Kdf
 from .mnemonics import MnemonicConverter, MnemonicConversionError, format_mnemonic
+
+def _get_pass_twice() -> str:
+    pw1 = getpass()
+    pw2 = getpass("Repeat password: ")
+
+    if pw1 != pw2:
+        print("Error: passwords do not match!", file=sys.stderr)
+        sys.exit(1)
+
+    return pw1
 
 class Cli:
     parser: ArgumentParser
@@ -24,7 +35,7 @@ class Cli:
         p.add_argument(
             "--password",
             "-p",
-            help="Password with which to encrypt/decrypt data.")
+            help="Password with which to encrypt/decrypt data. If omitted, you are prompted for one.")
         p.add_argument(
             "--salt",
             "-s",
@@ -49,17 +60,16 @@ class Cli:
         self.mnemonic_conv = MnemonicConverter.from_bip39_file()
 
         data = self._get_bytes_from_arg(self.args.data, "data")
-        pw = self._get_pw()
 
         cmd = self.args.command
         if cmd == "encrypt":
-            self._encrypt(data, pw)
+            self._encrypt(data)
         elif cmd == "decrypt":
-            self._decrypt(data, pw)
+            self._decrypt(data)
         else:
             raise NotImplementedError(f"'{cmd}' is not implemented")
 
-    def _encrypt(self, data: bytes, pw: str) -> None:
+    def _encrypt(self, data: bytes) -> None:
         salt = self.args.salt
         if salt is not None:
             salt = self._get_bytes_from_arg(salt, "salt")
@@ -71,6 +81,10 @@ class Cli:
             kdf_params = Argon2Kdf.str_to_parameters(kdf_params)
         else:
             kdf_params = Argon2Kdf.default_parameters()
+
+        pw = self.args.password
+        if pw is None:
+            pw = _get_pass_twice()
 
         cipher = self._create_cipher(pw, salt, kdf_params)
         encrypted_data = cipher.encrypt(data)
@@ -86,7 +100,7 @@ class Cli:
             print(f"\nSalt:\n{format_mnemonic(salt_mnemonic)}")
             print(f"\nKDF:\n{kdf_params_str}")
 
-    def _decrypt(self, data: bytes, pw: str) -> None:
+    def _decrypt(self, data: bytes) -> None:
         salt = self._ensure_arg(self.args.salt, "when decrypting data a salt must be specified")
         salt = self._get_bytes_from_arg(salt, "salt")
 
@@ -96,6 +110,10 @@ class Cli:
         else:
             print("No KDF parameters defined, using default ones...", file=sys.stderr)
             kdf_params = Argon2Kdf.default_parameters()
+
+        pw = self.args.password
+        if pw is None:
+            pw = getpass()
 
         cipher = self._create_cipher(pw, salt, kdf_params)
 
@@ -115,14 +133,6 @@ class Cli:
     def _encode_to_mnemonic(self, data: bytes) -> str:
         res = self.mnemonic_conv.convert_bytes(data)
         return res.str(True)
-
-    def _get_pw(self) -> str:
-        pw = self.args.password
-        if pw is None:
-            # TODO: read pw from stdin after command executes
-            raise ValueError("you must specify a password")
-    
-        return pw
 
     def _get_bytes_from_arg(self, s: str, arg_name: str) -> bytes:
         try:
