@@ -2,8 +2,11 @@ from bitarray import bitarray
 from bitarray.util import ba2int, int2ba
 from hashlib import sha256
 from dataclasses import dataclass
+from importlib import resources as impresources
 import math
 import re
+
+from . import wordlists
 
 class MnemonicConversionError(ValueError):
     pass
@@ -84,7 +87,8 @@ class MnemonicConverter:
 
     @staticmethod
     def from_bip39_file() -> "MnemonicConverter":
-        with open("english.txt", "r", encoding="utf8") as f:
+        words_file = impresources.files(wordlists) / "bip39-english.txt"
+        with words_file.open("rt", encoding="utf8") as f:
             contents = f.read()
 
         words = contents.splitlines()
