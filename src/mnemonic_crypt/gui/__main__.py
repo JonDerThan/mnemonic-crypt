@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-from src.mnemonics import MnemonicConverter
+from mnemonic_crypt.mnemonics import MnemonicConverter
 from .mainview import MainView
 from .mainviewmodel import MainViewModel
 

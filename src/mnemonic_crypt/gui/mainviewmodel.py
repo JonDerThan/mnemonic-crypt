@@ -1,9 +1,9 @@
 from tkinter import StringVar, BooleanVar
 
 from .validationvars import StringValidationVar, DataValidationError
-from src.cipher import AesCipher, InvalidKeyError, DecryptionError
-from src.mnemonics import MnemonicConverter, MnemonicConversionError
-from src.key_derivation import Argon2Kdf
+from mnemonic_crypt.cipher import AesCipher, InvalidKeyError, DecryptionError
+from mnemonic_crypt.mnemonics import MnemonicConverter, MnemonicConversionError
+from mnemonic_crypt.key_derivation import Argon2Kdf
 
 class MainViewModel:
     mnemonic_conv: MnemonicConverter
