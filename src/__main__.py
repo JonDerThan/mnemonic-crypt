@@ -99,8 +99,11 @@ class Cli:
 
         cipher = self._create_cipher(pw, salt, kdf_params)
 
-        # TODO: error handling
-        decrypted_data = cipher.decrypt(data)
+        try:
+            decrypted_data = cipher.decrypt(data)
+        except Exception:
+            print("Failed to decrypt your data. Maybe bad password?", file=sys.stderr)
+            sys.exit(1)
 
         decrypted_mnemonic = self._encode_to_mnemonic(decrypted_data)
 
