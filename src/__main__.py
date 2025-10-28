@@ -4,7 +4,7 @@ from typing import Any
 
 from .cipher import AesCipher
 from .key_derivation import Argon2Kdf
-from .mnemonics import MnemonicConverter, MnemonicConversionError
+from .mnemonics import MnemonicConverter, MnemonicConversionError, format_mnemonic
 
 class Cli:
     parser: ArgumentParser
@@ -24,6 +24,7 @@ class Cli:
         p.add_argument("--password", "-p")
         p.add_argument("--salt", "-s")
         p.add_argument("--kdf-params", "-k")
+        p.add_argument("--no-pretty-print", "-u", action="store_true")
 
         self.parser = p
 
@@ -64,8 +65,12 @@ class Cli:
         salt_mnemonic = self._encode_to_mnemonic(salt)
         kdf_params_str = Argon2Kdf.parameters_to_str(kdf_params)
 
-        # TODO: format this better
-        print(f"{encrypted_mnemonic}\n{salt_mnemonic}\n{kdf_params_str}")
+        if self.args.no_pretty_print:
+            print(f"{encrypted_mnemonic}\n{salt_mnemonic}\n{kdf_params_str}")
+        else:
+            print(f"Encrypted mnemonic:\n{format_mnemonic(encrypted_mnemonic)}")
+            print(f"\nSalt:\n{format_mnemonic(salt_mnemonic)}")
+            print(f"\nKDF:\n{kdf_params_str}")
 
     def _decrypt(self, data: bytes, pw: str) -> None:
         salt = self._ensure_arg(self.args.salt, "when decrypting data a salt must be specified")
@@ -84,7 +89,11 @@ class Cli:
         decrypted_data = cipher.decrypt(data)
 
         decrypted_mnemonic = self._encode_to_mnemonic(decrypted_data)
-        print(decrypted_mnemonic)
+
+        if self.args.no_pretty_print:
+            print(decrypted_mnemonic)
+        else:
+            print(f"Decrypted mnemonic:\n{format_mnemonic(decrypted_mnemonic)}")
 
     def _encode_to_mnemonic(self, data: bytes) -> str:
         res = self.mnemonic_conv.convert_bytes(data)

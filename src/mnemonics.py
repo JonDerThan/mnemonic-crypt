@@ -29,6 +29,20 @@ class InvalidChecksum(MnemonicConversionError):
         if expected != actual:
             raise InvalidChecksum(expected, actual)
 
+def format_mnemonic(mnemonic: str) -> str:
+    words = mnemonic.split()
+
+    decimal_digits = math.ceil(math.log(len(words), 10))
+    largest_word = max(len(w) for w in words)
+
+    numbered_words = [f"{str(i+1).rjust(decimal_digits)}. {w.ljust(largest_word)}" for (i, w) in enumerate(words)]
+
+    column_count = 4
+    rows = [numbered_words[i:min(i+column_count, len(words))] for i in range(0, len(words), column_count)]
+
+    text = "\n".join("    ".join(row) for row in rows)
+    return text
+
 @dataclass
 class MnemonicConversionResult:
     source: "MnemonicConverter"
