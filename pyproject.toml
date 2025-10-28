@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+description = "Encrypts data (or another mnemonic) and generates mnemonics for the used salt and ciphertext."
+name = "mnemonic_crypt"
+version = "0.0.1"
+authors = [
+  { name = "JonDerThan", email = "32145552+JonDerThan@users.noreply.github.com" },
+]
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+dependencies = [
+  "bitarray>=3.7.2",
+  "cryptography>=46.0.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/JonDerThan/mnemonic-crypt"
+Issues = "https://github.com/JonDerThan/mnemonic-crypt/issues"
+
+[project.scripts]
+mnemonic_crypt = "mnemonic_crypt.__main__:main"
+
+[project.gui-scripts]
+mnemonic_crypt_gui = "mnemonic_crypt.gui.__main__:main"

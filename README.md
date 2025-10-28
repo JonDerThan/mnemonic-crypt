@@ -16,7 +16,18 @@ then formats the result itself as a mnemonic, which can be written down safely.
 Encrypting 12 words results in 36 words of encrypted data, a 24 word mnemonic
 fits into 48 words when encrypted.
 
-## Usage
+## Getting Started
+
+### Run with pipx
+
+1. Follow the [pipx](https://pipx.pypa.io/latest/installation/) installation
+guide.
+2. Clone this repository or download its source files.
+3. Navigate to this folder in a terminal and run
+`pipx run --spec . mnemonic_crypt_gui` to start the GUI. For the CLI, run
+`pipx run --spec . mnemonic_crypt [args]`.
+
+## Usage (GUI)
 
 1. Copy and paste your mnemonic into the `Plain mnemonic` field. If you want to
 encrypt some other data, format it as hex and paste it into the `Plain data`
