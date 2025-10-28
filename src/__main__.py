@@ -15,16 +15,30 @@ class Cli:
         p = ArgumentParser(
             prog="MnemonicCrypt",
             description="Encrypts data/a mnemonic and outputs the used salt and ciphertext encoded "
-            "as a mnemonic",
+            "as a mnemonic.",
             epilog="Note: use single quotes ' for the arguments, otherwise the $ signs in strings "
-            "get intepreted as variables by your shell."
+            "may get intepreted as variables by your shell."
         )
         p.add_argument("command", choices=("encrypt", "decrypt"))
-        p.add_argument("--data", "-d", help="Can be a mnemonic or a hex string.")
-        p.add_argument("--password", "-p")
-        p.add_argument("--salt", "-s")
-        p.add_argument("--kdf-params", "-k")
-        p.add_argument("--no-pretty-print", "-u", action="store_true")
+        p.add_argument("data", help="Can be a mnemonic or a hex string.")
+        p.add_argument(
+            "--password",
+            "-p",
+            help="Password with which to encrypt/decrypt data.")
+        p.add_argument(
+            "--salt",
+            "-s",
+            help="If omitted, a random salt is generated. Must be prensent when COMMAND='decrypt'.")
+        p.add_argument(
+            "--kdf-params",
+            "-k",
+            help="If omitted, some sensible defaults are chosen. You should always set this when "
+            "decrypting data.")
+        p.add_argument(
+            "--no-pretty-print",
+            "-u",
+            action="store_true",
+            help="Does not format the output in tables.")
 
         self.parser = p
 
