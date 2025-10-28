@@ -24,7 +24,7 @@ class Cli:
 
     def __init__(self):
         p = ArgumentParser(
-            prog="MnemonicCrypt",
+            prog="mnemonic_crypt",
             description="Encrypts data/a mnemonic and outputs the used salt and ciphertext encoded "
             "as a mnemonic.",
             epilog="Note: use single quotes ' for the arguments, otherwise the $ signs in strings "

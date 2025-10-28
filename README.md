@@ -27,7 +27,9 @@ guide.
 `pipx run --spec . mnemonic_crypt_gui` to start the GUI. For the CLI, run
 `pipx run --spec . mnemonic_crypt [args]`.
 
-## Usage (GUI)
+## Usage
+
+### Graphical User Interface (GUI)
 
 1. Copy and paste your mnemonic into the `Plain mnemonic` field. If you want to
 encrypt some other data, format it as hex and paste it into the `Plain data`
@@ -54,6 +56,80 @@ KDF: $argon2id$v=19$m=65536,t=3,p=4
 ```
 
 To decrypt your data, simply fill in these values and click `Generate` again.
+
+### Command Line Interface (CLI)
+
+The application can be run in multiple ways, one such way is described in
+[Run with pix](#run-with-pipx). For brevity, the commands here are written with
+`mnemonic_crypt [args]` instead of `pipx run --spec . mnemonic_crypt [args]`
+although you may have to use the latter one.
+
+The view full documentation of the CLI, run `mnemonic_crypt --help`. A few
+examples are listed below.
+
+#### Encrypting Data
+
+```sh
+mnemonic_crypt encrypt 'lion blush obey agree remove improve aspect dawn giraffe maze belt wolf'
+```
+
+The program prompts you for a password...
+
+**Output:**
+
+```
+Encrypted mnemonic:
+ 1. mechanic     2. miss         3. coach        4. maid    
+ 5. trouble      6. since        7. stairs       8. obey    
+ 9. grass       10. wheat       11. suspect     12. script  
+13. admit       14. category    15. portion     16. assume  
+17. garage      18. grain       19. matter      20. banner  
+21. donor       22. drive       23. wash        24. over    
+
+Salt:
+ 1. truly       2. hub         3. slim        4. winner 
+ 5. roast       6. meadow      7. banana      8. stereo 
+ 9. never      10. bag        11. cattle     12. confirm
+
+KDF:
+$argon2id$v=19$m=65536,t=3,p=4
+```
+
+Note down all of the information! Losing only one of the 3
+(encrypted data/salt/KDF) will result in an irrevocable loss of your data!
+
+#### Decrypting Data
+
+```sh
+mnemonic_crypt decrypt \
+    --kdf-params '$argon2id$v=19$m=65536,t=3,p=4' \
+    --salt 'truly hub slim winner roast meadow banana stereo never bag cattle confirm' \
+    'mechanic miss coach maid trouble since stairs obey grass wheat suspect script admit category portion assume garage grain matter banner donor drive wash over'
+```
+
+The program prompts you for a password...
+
+**Output:**
+
+```
+Decrypted mnemonic:
+ 1. lion        2. blush       3. obey        4. agree  
+ 5. remove      6. improve     7. aspect      8. dawn   
+ 9. giraffe    10. maze       11. belt       12. wolf
+```
+
+#### Programmatic Usage
+
+You may not want the output of the program to be formatted in tables, for
+example when using this application programmatically. In this case you can
+set the `--no-pretty-print`/`-u` flag, which outputs the data like this: for
+encryption, the encrypted mnemonic/salt/kdf are each printed into one line; for
+decryption only the decrypted mnemonic is printed as a single line. Note that
+the "Calculated key in ..." message is printed to `stderr` so you should be able
+to parse the programs output by just reading `stdin`.
+
+For programmatic usage you probably also want to supply the password as a
+command line argument with `--password`/`-p`.
 
 ## Non-Technical Scheme Description
 
