@@ -1,13 +1,96 @@
-import argon2
+from dataclasses import dataclass
+from enum import Enum
 from math import ceil
 from os import urandom
 from time import time as now
+import re
 
-_TYPE_TO_NAME = {
-    argon2.Type.ID: "argon2id",
-    argon2.Type.I : "argon2i",
-    argon2.Type.D : "argon2d",
-}
+from cryptography.hazmat.primitives.kdf.argon2 import Argon2id
+
+class Argon2Type(Enum):
+    ID = "argon2id"
+    I  = "argon2i"
+    D  = "argon2d"
+
+@dataclass
+class Argon2Parameters:
+    type: Argon2Type
+    version: int
+    iterations: int # time cost
+    memory_cost: int # KiB
+    parallelism: int # no. of threads
+
+    @staticmethod
+    def default() -> "Argon2Parameters":
+        """
+        RFC9106 `FIRST RECOMMENDED` option with 2 iterations instead of 1.
+        """
+        assert 2**21 == 2_097_152 # 2 GiB
+        return Argon2Parameters(
+            type=Argon2Type.ID,
+            version=19,
+            iterations=2,
+            memory_cost=2**21,
+            parallelism=4,
+        )
+
+    @staticmethod
+    def from_string(s: str) -> "Argon2Parameters":
+        args = s.split("$")
+
+        if len(args) != 4:
+            raise ValueError("must include 4 $ signs to seperate parameters")
+        
+        if len(args[0]) > 0:
+            raise ValueError("must start with a $ sign")
+        
+        argon_type_s = args[1]
+        version_s = args[2]
+        params = args[3].split(",")
+
+        argon_type = None
+        for t in Argon2Type:
+            if argon_type_s == t.value:
+                argon_type = t
+
+        if argon_type is None:
+            raise ValueError(f"unrecognized argon2 type: '{argon_type_s}'")
+        
+        if not version_s.startswith("v="):
+            raise ValueError("invalid version string")
+        
+        version = int(version_s[2:])
+        if version != 19:
+            raise NotImplementedError(f"no support for version {version}")
+
+        param_dict: dict[str, int] = {}
+        for param in params:
+            m = re.match(r"^([a-z])=([0-9]+)$", param)
+            if m is None: raise ValueError("invalid param")
+            key = m.group(1)
+            value = int(m.group(2))
+            if key in param_dict.keys(): raise ValueError(f"duplicate param {key}")
+            param_dict[key] = value
+
+        if len(param_dict) != 3: raise ValueError("invalid parameter count")
+        invalid_keys = [key for key in param_dict.keys() if key not in ("m", "t", "p") ]
+        if len(invalid_keys) > 0: raise ValueError(f"invalid key {key}")
+
+        return Argon2Parameters(
+            type=argon_type,
+            version=version,
+            memory_cost=param_dict["m"],
+            iterations=param_dict["t"],
+            parallelism=param_dict["p"],
+        )
+
+    def str(self) -> str:
+        """
+        PHC encoded parameters (without salt and key):
+        `$argon2id$v=19$m=<memory_cost>,t=<iterations>,p=<lanes>`
+        """
+        p = self
+        return f"${p.type.value}$v={p.version}$m={p.memory_cost},t={p.iterations},p={p.parallelism}"
 
 class Argon2Kdf:
     def __init__(self):
@@ -18,7 +101,7 @@ class Argon2Kdf:
         return urandom(size)
 
     @staticmethod
-    def timed_raw(secret: str, salt: bytes, parameters: argon2.Parameters) -> tuple[float, bytes]:
+    def timed_raw(secret: str, salt: bytes, parameters: Argon2Parameters) -> tuple[float, bytes]:
         before = now()
         res = Argon2Kdf.raw(secret, salt, parameters)
         after = now()
@@ -26,54 +109,31 @@ class Argon2Kdf:
         return (elapsed, res)
 
     @staticmethod
-    def raw(secret: str, salt: bytes, parameters: argon2.Parameters) -> bytes:
+    def raw(secret: str, salt: bytes, parameters: Argon2Parameters) -> bytes:
         p = parameters
-        assert p.hash_len == 32
-        res = argon2.low_level.hash_secret_raw(
-            secret=secret.encode("utf-8"),
+        if p.type != Argon2Type.ID: raise NotImplementedError("can only calculate argon2id")
+        if p.version != 19: raise NotImplementedError("can only calculate version 19")
+
+        argon = Argon2id(
             salt=salt,
-            time_cost=p.time_cost,
+            length=32,
+            iterations=p.iterations,
+            lanes=p.parallelism,
             memory_cost=p.memory_cost,
-            parallelism=p.parallelism,
-            hash_len=32,
-            type=p.type,
-            version=p.version,
         )
 
+        res = argon.derive(secret.encode("utf-8"))
         assert len(res) * 8 == 256, "aes key length"
         return res
     
     @staticmethod
-    def default_parameters() -> argon2.Parameters:
-        return argon2.profiles.get_default_parameters()
+    def default_parameters() -> Argon2Parameters:
+        return Argon2Parameters.default()
 
     @staticmethod
-    def parameters_to_str(parameters: argon2.Parameters) -> str:
-        # $argon2id$v=<num$m=<num>,t=<num>,p=<num>
-        p = parameters
-        assert p.hash_len == 32
-
-        type = _TYPE_TO_NAME[p.type]
-        return f"${type}$v={p.version}$m={p.memory_cost},t={p.time_cost},p={p.parallelism}"
+    def parameters_to_str(parameters: Argon2Parameters) -> str:
+        return parameters.str()
 
     @staticmethod
-    def str_to_parameters(s: str) -> str:
-        # The argon2 encoded hash is usually of the form
-        # $argon2id$v=<num>$m=<num>,t=<num>,p=<num>$<bin>$<bin>
-        # where the last two values are the salt/hash, encoded in base64. The salt/hash length is
-        # implied by these values. Padding is omitted.
-        #
-        # We however omit these last two values to just represent the parameters. To avoid manually
-        # parsing the parameter string, we just add some dummy values here.
-
-        bits_per_char = 6 # one base64 char encodes 6 bits
-        if len(s.split("$")) == 4:
-            # 16 bytes = 128 bits
-            # 128 bits need >= 128 / 6 = 21.33 chars
-            s += "$" + "A" * ceil(16 * 8 / bits_per_char)
-            s += "$" + "A" * ceil(32 * 8 / bits_per_char)
-
-        p = argon2.extract_parameters(s)
-        assert p.salt_len == 16
-        assert p.hash_len == 32
-        return p
+    def str_to_parameters(s: str) -> Argon2Parameters:
+        return Argon2Parameters.from_string(s)
