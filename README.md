@@ -18,14 +18,19 @@ fits into 48 words when encrypted.
 
 ## Getting Started
 
+### Install with PyPI
+
+1. Run `python3 -m pip install mnemonic-crypt`.
+2. Run `mnemonic_crypt_gui` to open the GUI, for the CLI run
+`mnemonic_crypt [args]`.
+
 ### Run with pipx
 
 1. Follow the [pipx](https://pipx.pypa.io/latest/installation/) installation
 guide.
-2. Clone this repository or download its source files.
-3. Navigate to this folder in a terminal and run
-`pipx run --spec . mnemonic_crypt_gui` to start the GUI. For the CLI, run
-`pipx run --spec . mnemonic_crypt [args]`.
+2. Run `pipx run --spec mnemonic-crypt mnemonic_crypt_gui` (uses PyPI) or
+`pipx run --spec git+https://github.com/JonDerThan/mnemonic-crypt.git@main mnemonic_crypt_gui`
+(uses the git repository).
 
 ## Usage
 
