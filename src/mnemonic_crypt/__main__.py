@@ -3,9 +3,9 @@ from getpass import getpass
 import sys
 from typing import Any
 
-from .cipher import AesCipher
-from .key_derivation import Argon2Kdf
-from .mnemonics import MnemonicConverter, MnemonicConversionError, format_mnemonic
+from mnemonic_crypt.cipher import AesCipher
+from mnemonic_crypt.key_derivation import Argon2Kdf
+from mnemonic_crypt.mnemonics import MnemonicConverter, MnemonicConversionError, format_mnemonic
 
 def _get_pass_twice() -> str:
     pw1 = getpass()

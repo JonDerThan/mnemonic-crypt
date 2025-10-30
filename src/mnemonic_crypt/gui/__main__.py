@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 
 from mnemonic_crypt.mnemonics import MnemonicConverter
-from .mainview import MainView
-from .mainviewmodel import MainViewModel
+from mnemonic_crypt.gui.mainview import MainView
+from mnemonic_crypt.gui.mainviewmodel import MainViewModel
 
 
 def main():
