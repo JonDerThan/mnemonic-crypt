@@ -1,6 +1,6 @@
 from tkinter import StringVar, BooleanVar
 
-from .validationvars import StringValidationVar, DataValidationError
+from mnemonic_crypt.gui.validationvars import StringValidationVar, DataValidationError
 from mnemonic_crypt.cipher import AesCipher, InvalidKeyError, DecryptionError
 from mnemonic_crypt.mnemonics import MnemonicConverter, MnemonicConversionError
 from mnemonic_crypt.key_derivation import Argon2Kdf

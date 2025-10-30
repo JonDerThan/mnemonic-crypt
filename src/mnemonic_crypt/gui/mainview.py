@@ -2,8 +2,8 @@ from tkinter import ttk
 from tkinter import Misc
 import tkinter
 
-from .mainviewmodel import MainViewModel
-from .validationvars import StringValidationVar
+from mnemonic_crypt.gui.mainviewmodel import MainViewModel
+from mnemonic_crypt.gui.validationvars import StringValidationVar
 
 class StringEntryWithValidation(ttk.Frame):
     def __init__(self, parent: Misc, textvariable: StringValidationVar):

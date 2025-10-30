@@ -6,7 +6,7 @@ from importlib import resources as impresources
 import math
 import re
 
-from . import wordlists
+from mnemonic_crypt import wordlists
 
 class MnemonicConversionError(ValueError):
     pass
