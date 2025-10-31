@@ -2,7 +2,7 @@ from tkinter import StringVar, BooleanVar
 
 from mnemonic_crypt.gui.validationvars import StringValidationVar, DataValidationError
 from mnemonic_crypt.cipher import AesCipher, InvalidKeyError, DecryptionError
-from mnemonic_crypt.mnemonics import MnemonicConverter, MnemonicConversionError
+from mnemonic_crypt.mnemonics import MnemonicConverter, MnemonicConversionError, format_mnemonic
 from mnemonic_crypt.key_derivation import Argon2Kdf
 
 class MainViewModel:
@@ -17,6 +17,7 @@ class MainViewModel:
     encrypted_hex: StringValidationVar
     encrypted_mnemonic: StringValidationVar
     is_key_valid: BooleanVar
+    full_text: StringVar
 
     _ignore_events: set
     _ignore_crypt_update: bool
@@ -39,6 +40,7 @@ class MainViewModel:
         self.encrypted_hex = StringValidationVar(self._on_hex_changed, name="encrypted_hex")
         self.encrypted_mnemonic = StringValidationVar(self._on_mnemonic_changed, name="encrypted_mnemonic")
         self.is_key_valid = BooleanVar(value=False)
+        self.full_text = StringVar()
 
         # invalidate cipher on
         # kdf params
@@ -54,6 +56,7 @@ class MainViewModel:
     def _invalidate_key(self, *_) -> None:
         self.is_key_valid.set(False)
         self._cipher = None
+        self.full_text.set("")
 
     def encrypt(self) -> None:
         if not self.plain_data_hex.valid:
@@ -68,6 +71,8 @@ class MainViewModel:
         self._ignore_crypt_update = True
         self.encrypted_hex.set(encrypted_data.hex())
         self._ignore_crypt_update = False
+
+        self._update_full_text()
 
     def decrypt(self) -> None:
         if not self.encrypted_hex.valid:
@@ -119,6 +124,18 @@ class MainViewModel:
     def randomize_salt(self) -> None:
         new_salt = Argon2Kdf.rnd_salt()
         self.salt_hex.set(new_salt.hex())
+
+    def _update_full_text(self) -> None:
+        encr = self.encrypted_mnemonic.get()
+        salt = self.salt_mnemonic.get()
+        kdfp = self.kdf_params.get()
+
+        res = (
+            f"Encrypted mnemonic:\n{format_mnemonic(encr)}" + 
+            f"\n\nSalt:\n{format_mnemonic(salt)}" + 
+            f"\n\nKDF:\n{kdfp}")
+
+        self.full_text.set(res)
 
     def _on_hex_changed(self, var_name: str, idx: str, mode: str) -> None:
         var_name_prefix = var_name.replace("_hex", "").replace("_mnemonic", "")

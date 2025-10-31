@@ -8,8 +8,8 @@ from mnemonic_crypt.gui.mainviewmodel import MainViewModel
 
 def main():
     root = tk.Tk()
-    root.title("Test title")
-    root.geometry("1200x600+100+100")
+    root.title("MnemonicCrypt")
+    root.geometry("1200x800+100+100")
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
 
