@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 description = "Encrypts data (or another mnemonic) and generates mnemonics for the used salt and ciphertext."
 name = "mnemonic_crypt"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name = "JonDerThan", email = "32145552+JonDerThan@users.noreply.github.com" },
 ]
