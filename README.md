@@ -18,6 +18,24 @@ fits into 48 words when encrypted.
 
 ## Getting Started
 
+There are several methods for running this application, you can freely choose
+any one of the options below. The easiest method (the one you should use if you
+don't want to install Python) is using the standalone executable. The
+recommended method is using PyPI.
+
+### Standalone Executable
+
+1. Go to the [Releases](https://github.com/JonDerThan/mnemonic-crypt/releases/latest)
+page.
+2. From the release assets (scroll down), download the correct file for your
+system, e.g. `mnemonic_crypt_windows_v1.2.3.zip`. Extract the zip file.
+3. Go to the extraction path and doubleclick `mnemonic_crypt_gui.exe`.
+
+Note: it is possible that the executable doesn't work. In this case please try
+one of the other methods and file a new [Issue](https://github.com/JonDerThan/mnemonic-crypt/issues/?q=is%3Aissue%20state%3Aopen%20standalone)
+if one doesn't already exists (please put "Standalone Executable" somewhere in
+the title).
+
 ### Install with PyPI
 
 1. Run `python3 -m pip install mnemonic-crypt`.
