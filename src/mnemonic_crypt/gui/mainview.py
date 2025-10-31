@@ -21,6 +21,15 @@ class StringEntryWithValidation(ttk.Frame):
         )
         entry_err.grid(column=0, row=1, sticky="new")
 
+def _bind_text_to_string(text: tkinter.Text, textvar: tkinter.StringVar):
+    def on_textvar_changed(_1, _2, _3):
+        text["state"] = "normal"
+        text.delete("1.0", "end")
+        text.insert("1.0", textvar.get())
+        text["state"] = "disabled"
+
+    textvar.trace_add("write", on_textvar_changed)
+
 class MainView:
     vm: MainViewModel
     mainframe: ttk.Frame
@@ -73,3 +82,7 @@ class MainView:
             column=0, row=7, sticky="nw")
         StringEntryWithValidation(self.mainframe, self.vm.encrypted_mnemonic).grid(
             column=1, row=7, sticky="new")
+
+        t = tkinter.Text(self.mainframe, height=13, state="disabled")
+        t.grid(column=1, row=8, sticky="new")
+        _bind_text_to_string(t, self.vm.full_text)
